@@ -14,10 +14,16 @@ const AI_CONFIGS: Record<string, AIConfig> = {
   'chatgpt.com': {
     dropdownSelector: '[data-testid="model-switcher-dropdown-button"]',
     models: {
-      normal: { text: 'Instant' },
-      pro: { text: 'Thinking' },
+      normal: { text: 'Instant', selector: '[data-testid*="instant"]' },
+      pro: { text: 'Thinking', selector: '[data-testid*="thinking"]' },
     },
     getMenuItem: (model) => {
+      // Try data-testid first for reliability
+      if (model.selector) {
+        const el = document.querySelector(model.selector);
+        if (el) return el;
+      }
+      // Fall back to text matching
       const items = document.querySelectorAll('[role="menuitem"]');
       return Array.from(items).find((i) =>
         i.textContent?.includes(model.text || '')
@@ -67,6 +73,32 @@ const AI_CONFIGS: Record<string, AIConfig> = {
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+function simulateClick(el: Element) {
+  const rect = el.getBoundingClientRect();
+  const x = rect.left + rect.width / 2;
+  const y = rect.top + rect.height / 2;
+  const opts: PointerEventInit & MouseEventInit = {
+    bubbles: true,
+    cancelable: true,
+    clientX: x,
+    clientY: y,
+    view: window,
+  };
+  el.dispatchEvent(new PointerEvent('pointerdown', opts));
+  el.dispatchEvent(new MouseEvent('mousedown', opts));
+  el.dispatchEvent(new PointerEvent('pointerup', opts));
+  el.dispatchEvent(new MouseEvent('mouseup', opts));
+  el.dispatchEvent(new MouseEvent('click', opts));
+}
+
+function clickElement(el: Element, useSimulated: boolean) {
+  if (useSimulated) {
+    simulateClick(el);
+  } else {
+    (el as HTMLElement).click();
+  }
+}
+
 async function switchModel(mode: 'normal' | 'pro'): Promise<{ success: boolean; message: string }> {
   const hostname = window.location.hostname;
   const config = AI_CONFIGS[hostname];
@@ -74,6 +106,9 @@ async function switchModel(mode: 'normal' | 'pro'): Promise<{ success: boolean; 
   if (!config) {
     return { success: false, message: 'Unsupported website' };
   }
+
+  // ChatGPT uses Radix UI which requires full pointer/mouse event sequence
+  const needsSimulatedClick = hostname === 'chatgpt.com';
 
   // Get dropdown button
   const dropdown =
@@ -86,15 +121,15 @@ async function switchModel(mode: 'normal' | 'pro'): Promise<{ success: boolean; 
   }
 
   // Click to open menu
-  (dropdown as HTMLElement).click();
-  await sleep(350);
+  clickElement(dropdown, needsSimulatedClick);
+  await sleep(500);
 
   // Click model option
   const modelConfig = config.models[mode];
   const menuItem = config.getMenuItem(modelConfig);
 
   if (menuItem) {
-    (menuItem as HTMLElement).click();
+    clickElement(menuItem, needsSimulatedClick);
     return {
       success: true,
       message: `Switched to ${mode === 'pro' ? 'Pro/Thinking' : 'Normal/Fast'} mode`,
@@ -102,7 +137,7 @@ async function switchModel(mode: 'normal' | 'pro'): Promise<{ success: boolean; 
   }
 
   // Close menu if model not found
-  (dropdown as HTMLElement).click();
+  clickElement(dropdown, needsSimulatedClick);
   return { success: false, message: 'Model option not found' };
 }
 
