@@ -23,10 +23,11 @@ const AI_CONFIGS: Record<string, AIConfig> = {
         const el = document.querySelector(model.selector);
         if (el) return el;
       }
-      // Fall back to text matching
+      // Fall back to case-insensitive text matching
+      const keyword = (model.text || '').toLowerCase();
       const items = document.querySelectorAll('[role="menuitem"]');
       return Array.from(items).find((i) =>
-        i.textContent?.includes(model.text || '')
+        i.textContent?.toLowerCase().includes(keyword)
       ) || null;
     },
   },
@@ -37,9 +38,10 @@ const AI_CONFIGS: Record<string, AIConfig> = {
       pro: { text: 'Opus' },
     },
     getMenuItem: (model) => {
+      const keyword = (model.text || '').toLowerCase();
       const items = document.querySelectorAll('[role="menuitem"]');
       return Array.from(items).find((i) =>
-        i.textContent?.includes(model.text || '')
+        i.textContent?.toLowerCase().includes(keyword)
       ) || null;
     },
   },
@@ -59,12 +61,22 @@ const AI_CONFIGS: Record<string, AIConfig> = {
       );
     },
     models: {
-      normal: { selector: '[data-test-id="bard-mode-option-fast"]' },
-      pro: { selector: '[data-test-id="bard-mode-option-pro"]' },
+      normal: { text: 'flash', selector: '[data-test-id="bard-mode-option-fast"]' },
+      pro: { text: 'pro', selector: '[data-test-id="bard-mode-option-pro"]' },
     },
     getMenuItem: (model) => {
+      // Try data-test-id first for reliability
       if (model.selector) {
-        return document.querySelector(model.selector);
+        const el = document.querySelector(model.selector);
+        if (el) return el;
+      }
+      // Fall back to case-insensitive text matching
+      if (model.text) {
+        const keyword = model.text.toLowerCase();
+        const items = document.querySelectorAll('[role="option"], [role="menuitem"], [role="radio"]');
+        return Array.from(items).find((i) =>
+          i.textContent?.toLowerCase().includes(keyword)
+        ) || null;
       }
       return null;
     },
@@ -122,11 +134,16 @@ async function switchModel(mode: 'normal' | 'pro'): Promise<{ success: boolean; 
 
   // Click to open menu
   clickElement(dropdown, needsSimulatedClick);
-  await sleep(500);
 
-  // Click model option
+  // Poll for the menu item instead of a fixed delay
   const modelConfig = config.models[mode];
-  const menuItem = config.getMenuItem(modelConfig);
+  let menuItem: Element | null = null;
+  const deadline = Date.now() + 500;
+  while (Date.now() < deadline) {
+    menuItem = config.getMenuItem(modelConfig);
+    if (menuItem) break;
+    await sleep(20);
+  }
 
   if (menuItem) {
     clickElement(menuItem, needsSimulatedClick);

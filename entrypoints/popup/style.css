@@ -29,6 +29,8 @@ body {
   margin: 0;
   padding: 0;
   font-family: 'Geist Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  user-select: none;
+  cursor: text;
 }
 
 @keyframes fadeIn {

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 
 const MODEL_INFO = {
   ChatGPT: { normal: 'Instant', pro: 'Thinking' },
-  Claude: { normal: 'Sonnet 4.5', pro: 'Opus 4.5' },
+  Claude: { normal: 'Sonnet', pro: 'Opus' },
   Gemini: { normal: 'Fast', pro: 'Pro' },
 };
 
