@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+@theme {
+  --color-brand: #2E2B5F;
+  --color-brand-bg: #F4F3EE;
+}
+
 @font-face {
   font-family: 'Geist Sans';
   src: url('/fonts/Geist-Regular.woff2') format('woff2');

@@ -7,7 +7,6 @@
 This extension requires the following browser permissions solely to perform its core functionality:
 
 - **activeTab** — To detect which AI site is currently active and switch models on the page.
-- **scripting** — To inject the content script that interacts with the AI site's UI.
 - **storage** — To store user preferences locally on the device.
 
 ## Data Collection

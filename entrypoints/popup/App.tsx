@@ -62,8 +62,8 @@ function App() {
     <div className="bg-white text-gray-900 min-w-[300px]">
       {/* Header */}
       <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-2.5">
-        <div className="w-7 h-7 bg-[#F4F3EE] flex items-center justify-center rounded-md">
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="#2E2B5F">
+        <div className="w-7 h-7 bg-brand-bg flex items-center justify-center rounded-md">
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="var(--color-brand)">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
           </svg>
         </div>
