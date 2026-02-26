@@ -1,0 +1,43 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: yarn
+
+      - run: yarn install --frozen-lockfile
+
+      - run: yarn zip
+
+      - name: Get version from tag
+        id: version
+        run: echo "version=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+
+      - name: Create CRX
+        run: |
+          npx crx3 .output/chrome-mv3 -o ai-model-switcher-${{ steps.version.outputs.version }}.crx
+
+      - name: Rename zip
+        run: mv .output/*.zip ai-model-switcher-${{ steps.version.outputs.version }}.zip
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: |
+            ai-model-switcher-${{ steps.version.outputs.version }}.zip
+            ai-model-switcher-${{ steps.version.outputs.version }}.crx
